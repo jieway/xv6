@@ -105,3 +105,13 @@ sys_trace(void){
   myproc()->trace_mask = n;
   return 0;
 }
+
+uint64
+sys_sysinfo(void){
+  int n;
+  if(argint(0, &n) < 0) {
+    return -1;
+  }
+  myproc()->trace_mask = n;
+  return 0;
+}
