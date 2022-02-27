@@ -163,6 +163,8 @@ pagetable_t     kvminitnewpgtbl();
 void            kvmmappgtbl(pagetable_t);
 void            kvmfreekpgtbl(pagetable_t);
 void            kvminithart(void);
+int             kvmcopymappings(pagetable_t, pagetable_t, uint64, uint64); 
+uint64          kvmdealloc(pagetable_t, uint64, uint64);
 uint64          kvmpa(pagetable_t, uint64);
 void            kvmmap(pagetable_t, uint64, uint64, uint64, int);
 int             mappages(pagetable_t, uint64, uint64, uint64, int);

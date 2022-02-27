@@ -108,6 +108,9 @@ exec(char *path, char **argv)
       last = s+1;
   safestrcpy(p->name, last, sizeof(p->name));
     
+  uvmunmap(p->kptgbl, 0, PGROUNDUP(oldsz)/PGSIZE, 0);
+  kvmcopymappings(pagetable, p->kptgbl, 0, sz);
+
   // Commit to the user image.
   oldpagetable = p->pagetable;
   p->pagetable = pagetable;
