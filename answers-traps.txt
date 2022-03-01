@@ -1,0 +1,44 @@
+1. Which registers contain arguments to functions? For example, which register holds 13 in main's call to printf?
+
+a0 a2-a7 其中 a2 保存 13
+
+2. Where is the call to function f in the assembly code for main? Where is the call to g? (Hint: the compiler may inline functions.)
+
+函数调用已经被内联了。
+
+3. At what address is the function printf located?
+
+0000000000000630
+
+4. What value is in the register ra just after the jalr to printf in main?
+
+经过 jalr 跳转后 ra 的值是 0x38 其中 ra 是 return adddress 的缩写。
+
+跳转之前打印 ra 中的数据
+
+`jalr	1536(ra)` 表示跳转到 ra 寄存器中的值加上 1536 所在地址。
+其中 1536 在 16 进制下是 0x600 ，此时 ra 寄存器中的值是 0x30 。所以将会跳转到 0x630 处。
+此外 ra 的值将会变为 pc + 4 即 0x38. 也就是 return address 。执行完函数之后通过 ra 返回。
+
+4. Q: Run the following code.
+
+	unsigned int i = 0x00646c72;
+	printf("H%x Wo%s", 57616, &i);      
+
+What is the output?
+If the RISC-V were instead big-endian what would you set i to in order to yield the same output?
+Would you need to change 57616 to a different value?
+A: "He110 World"; 0x726c6400; no, 57616 is 110 in hex regardless of endianness.
+
+%X 表示无符号以十六进制表示的整数。%s 表示输出字符串。
+
+其中 57616 在 16 进制下是 E110 。 
+
+其中 72:r 6c:l 64:d 符合 Risc-V 小段的输出，如果是大端的话需要将 i 修改为 0x726c6400 。
+
+5. In the following code, what is going to be printed after 'y='? (note: the answer is not a specific value.) Why does this happen?
+
+	printf("x=%d y=%d", 3);
+
+	$ call
+	x=3 y=5221
