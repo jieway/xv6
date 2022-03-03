@@ -50,7 +50,7 @@ usertrap(void)
   // save user program counter.
   p->trapframe->epc = r_sepc();
   
-  if(r_scause() == 8){
+  if(r_scause() == 8){    // 8 代码系统调用的参数
     // system call
 
     if(p->killed)
@@ -77,9 +77,24 @@ usertrap(void)
     exit(-1);
 
   // give up the CPU if this is a timer interrupt.
-  if(which_dev == 2)
-    yield();
+  // if(which_dev == 2)
+  //   yield();
 
+  // give up the CPU if this is a timer interrupt.
+  if(which_dev == 2)      // 处理时钟中断
+  {
+    if(p->interval != 0 && !p->handling) // 判断是否已经存在调用
+    {
+      if(--p->count == 0)         // 当前的 tick
+      {
+        p->count = p->interval;
+        p->handling = 1;
+        p->save_info = *(p->trapframe);     // 备份
+        p->trapframe->epc = (uint64)p->fn;  // 执行调用函数
+      }
+    }
+    yield();
+  }
   usertrapret();
 }
 
@@ -217,4 +232,3 @@ devintr()
     return 0;
   }
 }
-
