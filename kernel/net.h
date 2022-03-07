@@ -78,9 +78,9 @@ static inline uint32 bswapl(uint32 val)
 
 // an Ethernet packet header (start of the packet).
 struct eth {
-  uint8  dhost[ETHADDR_LEN];
-  uint8  shost[ETHADDR_LEN];
-  uint16 type;
+  uint8  dhost[ETHADDR_LEN];  // 6*8 = 48-bit 全 f 表示广播 
+  uint8  shost[ETHADDR_LEN];  // 正在发送主机的以太网地址
+  uint16 type;                // 协议类型，例如 ARP:0806
 } __attribute__((packed));
 
 #define ETHTYPE_IP  0x0800 // Internet protocol
@@ -123,10 +123,10 @@ struct arp {
   uint8  pln; // length of protocol address
   uint16 op;  // operation
 
-  char   sha[ETHADDR_LEN]; // sender hardware address
-  uint32 sip;              // sender IP address
+  char   sha[ETHADDR_LEN]; // sender hardware address  发送者的 MAC 地址
+  uint32 sip;              // sender IP address 发送者的 IP 地址
   char   tha[ETHADDR_LEN]; // target hardware address
-  uint32 tip;              // target IP address
+  uint32 tip;              // target IP address 发送者想要收到的 IP 地址
 } __attribute__((packed));
 
 #define ARP_HRD_ETHER 1 // Ethernet
