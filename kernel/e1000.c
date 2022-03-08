@@ -102,11 +102,16 @@ e1000_transmit(struct mbuf *m)
   // the TX descriptor ring so that the e1000 sends it. Stash
   // a pointer so that it can be freed after sending.
   //
-  acquire(&e1000_lock); // 获取 E1000 的锁，防止多进程同时发送数据出现 race
+  acquire(&e1000_lock);
 
-  uint32 ind = regs[E1000_TDT]; // 下一个可用的 buffer 的下标
-  struct tx_desc *desc = &tx_ring[ind]; // 获取 buffer 的描述符，其中存储了关于该 buffer 的各种信息
-  // 如果该 buffer 中的数据还未传输完，则代表我们已经将环形 buffer 列表全部用完，缓冲区不足，返回错误
+  // 获取索引
+  uint32 ind = regs[E1000_TDT];
+
+  //  根据索引获取指向 buffer 的指针
+  struct tx_desc *desc = &tx_ring[ind];
+
+  // 判断之前是否传输完成 E1000_TXD_STAT_DD 是一个标志位，
+  // 如果没有被设置那么说明之前的数据没有传输完成
   if(!(desc->status & E1000_TXD_STAT_DD)) {
     release(&e1000_lock);
     return -1;
@@ -143,7 +148,7 @@ e1000_recv(void)
   // Check for packets that have arrived from the e1000
   // Create and deliver an mbuf for each packet (using net_rx()).
   //
-  while(1) { // 每次 recv 可能接收多个包
+  while(1) {
 
     uint32 ind = (regs[E1000_RDT] + 1) % RX_RING_SIZE;
     
