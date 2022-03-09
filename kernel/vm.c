@@ -5,6 +5,11 @@
 #include "riscv.h"
 #include "defs.h"
 #include "fs.h"
+#include "fcntl.h"
+#include "spinlock.h"
+#include "sleeplock.h"
+#include "file.h"
+#include "proc.h"
 
 /*
  * the kernel's page table.
@@ -427,5 +432,44 @@ copyinstr(pagetable_t pagetable, char *dst, uint64 srcva, uint64 max)
     return 0;
   } else {
     return -1;
+  }
+}
+
+void
+vmaunmap(pagetable_t pagetable, uint64 va, uint64 nbytes, struct vma *v)
+{
+  uint64 a;
+  pte_t *pte;
+
+  for(a = va; a < va + nbytes; a += PGSIZE){
+    if((pte = walk(pagetable, a, 0)) == 0)
+      panic("sys_munmap: walk");
+    if(PTE_FLAGS(*pte) == PTE_V)
+      panic("sys_munmap: not a leaf");
+    if(*pte & PTE_V){
+      uint64 pa = PTE2PA(*pte);
+      // 脏页
+      if((*pte & PTE_D) && (v->flags & MAP_SHARED)) { 
+        // 在每个FS系统调用开始时调用
+        begin_op();
+        // 锁定 inode
+        ilock(v->f->ip);
+        // 相对于内存范围开始的偏移
+        uint64 aoff = a - v->vastart; 
+        // 第一个页不是完整的情况
+        if(aoff < 0) {
+          // 写回磁盘
+          writei(v->f->ip, 0, pa + (-aoff), v->offset, PGSIZE + aoff);
+        } else if(aoff + PGSIZE > v->sz){  // 最后一个页不是完整的情况
+          writei(v->f->ip, 0, pa, v->offset + aoff, v->sz - aoff);
+        } else {
+          writei(v->f->ip, 0, pa, v->offset + aoff, PGSIZE);
+        }
+        iunlock(v->f->ip);
+        end_op();
+      }
+      kfree((void*)pa);
+      *pte = 0;
+    }
   }
 }

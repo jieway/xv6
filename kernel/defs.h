@@ -8,6 +8,7 @@ struct spinlock;
 struct sleeplock;
 struct stat;
 struct superblock;
+struct vma;
 
 // bio.c
 void            binit(void);
@@ -16,6 +17,7 @@ void            brelse(struct buf*);
 void            bwrite(struct buf*);
 void            bpin(struct buf*);
 void            bunpin(struct buf*);
+int             vmatrylazytouch(uint64 va);
 
 // console.c
 void            consoleinit(void);
@@ -53,6 +55,7 @@ int             readi(struct inode*, int, uint64, uint, uint);
 void            stati(struct inode*, struct stat*);
 int             writei(struct inode*, int, uint64, uint, uint);
 void            itrunc(struct inode*);
+void			vmaunmap(pagetable_t pagetable, uint64 va, uint64 nbytes, struct vma *v);
 
 // ramdisk.c
 void            ramdiskinit(void);
